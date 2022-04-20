@@ -1,17 +1,17 @@
-﻿using MassTransit;
+﻿using System;
+using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using TicketSales.Admin.Mappers;
-using TicketSales.Admin.Services;
 using TicketSales.Core.DataAccess;
 using TicketSales.Core.DataAccess.DbContexts;
+using TicketSales.User.Mappers;
+using TicketSales.User.Services;
 
-namespace TicketSales.Admin
+namespace TicketSales.User
 {
     public class Startup
     {
@@ -67,16 +67,7 @@ namespace TicketSales.Admin
                 //    });
                 //});
 
-                //x.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
-                //{
-                //    cfg.Host(host, virtualHost, hostConfigurator =>
-                //    {
-                //        hostConfigurator.Username(username);
-                //        hostConfigurator.Password(password);
-                //    });
-                //}));
-
-                EndpointConvention.Map<Messages.Commands.CreateConcert>(new Uri($"rabbitmq://{host}/{virtualHost}/create-concert-command"));
+                EndpointConvention.Map<Messages.Commands.CreateConcert>(new Uri($"rabbitmq://{host}/{virtualHost}/buy-ticket-command"));
             });
 
             services.AddMassTransitHostedService();
@@ -95,7 +86,7 @@ namespace TicketSales.Admin
 
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "TicketSales Admin API");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "TicketSales User API");
             });
 
             app.UseHttpsRedirection();
@@ -112,7 +103,7 @@ namespace TicketSales.Admin
 
         private void RegisterDependacies(IServiceCollection services)
         {
-            services.AddTransient<IAdminService, AdminService>();
+            services.AddTransient<IUserService, UserService>();
             services.AddSingleton<IModelMapper, ModelMapper>();
             services.AddTransient<ITicketingRepository, TicketingRepository>();
         }

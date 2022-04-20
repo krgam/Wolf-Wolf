@@ -10,6 +10,8 @@ namespace TicketSales.Core.Handlers.Builders
 
         TicketsSold CreateTicketsSoldEvent(Concert concert, User user, int numberOfTickets);
 
+        TicketsNotSold CreateTicketsNotSoldEvent(Concert concert, User user, TicketsNotSoldReason reason);
+
         SoldTicketView CreateSoldTicketView(TicketsSold @event);
     }
 }

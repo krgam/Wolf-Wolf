@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 using TicketSales.Core.DataAccess.DbContexts;
 using TicketSales.Core.Handlers.CommandHandlers;
 using Microsoft.Extensions.DependencyInjection;
+using TicketSales.Core.DataAccess;
+using TicketSales.Core.Handlers.Builders;
+using TicketSales.Core.Handlers.EventHandlers;
 
 namespace TicketSales.Core.Processor
 {
@@ -33,19 +36,23 @@ namespace TicketSales.Core.Processor
                     {
                         x.AddConsumer<BuyTicketHandler>(typeof(BuyTicketHandlerDefinition));
                         x.AddConsumer<CreateConcertHandler>(typeof(CreateConcertHandlerDefinition));
-
-                        x.AddConsumer<CreateConcertHandler>(typeof(CreateConcertHandlerDefinition));
+                        x.AddConsumer<TicketsSoldHandler>(typeof(TicketsSoldHandlerDefinition));
 
                         x.SetKebabCaseEndpointNameFormatter();
 
-                        x.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
+                        x.UsingInMemory((context, cfg) =>
                         {
-                            cfg.Host(host, virtualHost, hostConfigurator =>
-                            {
-                                hostConfigurator.Username(username);
-                                hostConfigurator.Password(password);
-                            });
-                        }));
+                            cfg.ConfigureEndpoints(context);
+                        });
+
+                        //x.UsingRabbitMq((context, cfg) =>
+                        //{
+                        //    cfg.Host(host, virtualHost, h =>
+                        //    {
+                        //        h.Username(username);
+                        //        h.Password(password);
+                        //    });
+                        //});
                     });
 
                     bool.TryParse(config["UseInMemoryDatabase"], out bool useInMemoryDatabase);
@@ -63,45 +70,18 @@ namespace TicketSales.Core.Processor
 
                         options.EnableSensitiveDataLogging(true);
                     });
+
+                    RegisterDependacies(services);
                 })
                 .Build()
                 .RunAsync();
+        }
 
-            //    var builder = new ConfigurationBuilder()
-            //        .SetBasePath(Directory.GetCurrentDirectory())
-            //        .AddJsonFile("appsettings.json", optional: false);
-
-            //    IConfiguration config = builder.Build();
-
-            //    var busControl = Bus.Factory.CreateUsingRabbitMq(cfg =>
-            //    {
-            //        cfg.Host(new Uri(config["MassTransit:RabbitMqUri"]), config["MassTransit:RabbitMqVirtualHost"], hostConfigurator =>
-            //        {
-            //            hostConfigurator.Username(config["MassTransit:RabbitMqUser"]);
-            //            hostConfigurator.Password(config["MassTransit:RabbitMqPassword"]);
-            //        });
-
-            //        cfg.ReceiveEndpoint("buy-ticket-commands", e =>
-            //        {
-            //            e.PrefetchCount = 16;
-
-            //        });
-            //    });
-
-            //    var source = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-
-            //    await busControl.StartAsync(source.Token);
-            //    try
-            //    {
-            //        Console.WriteLine($"Application started {System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}");
-            //        Console.WriteLine("Press enter to exit");
-
-            //        await Task.Run(() => Console.ReadLine());
-            //    }
-            //    finally
-            //    {
-            //        await busControl.StopAsync();
-            //    }
+        private static void RegisterDependacies(IServiceCollection services)
+        {
+            services.AddTransient<ITicketingRepository, TicketingRepository>();
+            services.AddSingleton<ITicketBuilder, TicketBuilder>();
+            services.AddSingleton<IConcertBuilder, ConcertBuilder>();
         }
     }
 }

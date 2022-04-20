@@ -55,5 +55,27 @@ namespace TicketSales.Core.Handlers.Builders
                 NumberOfTickets = @event.NumberOfTickets,
             };
         }
+
+        public TicketsNotSold CreateTicketsNotSoldEvent(Concert concert, User user, TicketsNotSoldReason reason)
+        {
+            if (concert is null)
+            {
+                throw new ArgumentNullException(nameof(concert));
+            }
+
+            if (user is null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            return new TicketsNotSold()
+            {
+                UserId = user.Id,
+                UserName = user.Name,
+                ConcertId = concert.Id,
+                ConcertName = concert.Name,
+                Reason = reason,
+            };
+        }
     }
 }

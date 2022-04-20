@@ -29,15 +29,24 @@ namespace TicketSales.Core.Handlers.CommandHandlers
             {
                 var concert = await repository.GetConcertById(ticketSale.ConcertId);
 
-                concert.SellTicket(ticketSale.NumberOfTickets);
+                if (concert.NumberOfTickets >= ticketSale.NumberOfTickets)
+                {
+                    concert.SellTicket(ticketSale.NumberOfTickets);
 
-                await repository.InsertTicketSale(ticketSale);
+                    await repository.InsertTicketSale(ticketSale);
 
-                await repository.UpdateConcert(concert);
+                    await repository.UpdateConcert(concert);
 
-                var @event = builder.CreateTicketsSoldEvent(concert, user, ticketSale.NumberOfTickets);
+                    var @event = builder.CreateTicketsSoldEvent(concert, user, ticketSale.NumberOfTickets);
 
-                await context.Publish(@event);
+                    await context.Publish(@event);
+                }
+                else
+                {
+                    var @event = builder.CreateTicketsNotSoldEvent(concert, user, Messages.Events.TicketsNotSoldReason.NotEnoughTicketsForConcert);
+
+                    await context.Publish(@event);
+                }
 
                 transation.Complete();
             }
