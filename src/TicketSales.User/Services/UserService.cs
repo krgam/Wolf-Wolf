@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using TicketSales.Admin.Models;
 using TicketSales.Core.DataAccess;
 using TicketSales.Core.Domain;
 using TicketSales.Messages.Commands;
@@ -12,10 +11,10 @@ namespace TicketSales.User.Services
 {
     public class UserService : IUserService
     {
-        private readonly IPublishEndpoint publisher;
+        private readonly IBus publisher;
         private readonly ITicketingRepository repository;
 
-        public UserService(IPublishEndpoint publisher, ITicketingRepository repository)
+        public UserService(IBus publisher, ITicketingRepository repository)
         {
             this.publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
             this.repository = repository ?? throw new ArgumentNullException(nameof(repository));
@@ -53,7 +52,7 @@ namespace TicketSales.User.Services
                 NumberOfTickets = request.NumberOfTickets,
             };
 
-            await this.publisher.Publish(command);
+            await this.publisher.Send(command);
 
             return new ServiceResponse();
         }

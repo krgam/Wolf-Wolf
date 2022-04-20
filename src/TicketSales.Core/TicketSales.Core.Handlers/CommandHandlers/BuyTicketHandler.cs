@@ -1,4 +1,5 @@
 ﻿using MassTransit;
+using MassTransit.ConsumeConfigurators;
 using MassTransit.Definition;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -59,6 +60,16 @@ namespace TicketSales.Core.Handlers.CommandHandlers
         {
             // override the default endpoint name
             EndpointName = "buy-ticket-command";
+
+            // limit the number of messages consumed concurrently
+            // this applies to the consumer only, not the endpoint
+            ConcurrentMessageLimit = 4;
+        }
+
+        protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
+            IConsumerConfigurator<BuyTicketHandler> consumerConfigurator)
+        {
+            endpointConfigurator.UseInMemoryOutbox();
         }
     }
 }

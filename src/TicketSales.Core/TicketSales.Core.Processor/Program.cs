@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.IO;
 using System.Threading.Tasks;
 using TicketSales.Core.DataAccess.DbContexts;
@@ -34,31 +33,33 @@ namespace TicketSales.Core.Processor
                 {
                     services.AddMassTransit(x =>
                     {
-                        x.AddConsumer<BuyTicketHandler>(typeof(BuyTicketHandlerDefinition));
                         x.AddConsumer<CreateConcertHandler>(typeof(CreateConcertHandlerDefinition));
+                        x.AddConsumer<BuyTicketHandler>(typeof(BuyTicketHandlerDefinition));
                         x.AddConsumer<TicketsSoldHandler>(typeof(TicketsSoldHandlerDefinition));
 
-                        x.SetKebabCaseEndpointNameFormatter();
+                        //x.SetKebabCaseEndpointNameFormatter();
 
-                        x.UsingInMemory((context, cfg) =>
+                        //x.UsingInMemory((context, cfg) =>
+                        //{
+                        //    cfg.ConfigureEndpoints(context);
+                        //});
+
+                        x.UsingRabbitMq((context, cfg) =>
                         {
+                            cfg.Host(host, virtualHost, h =>
+                            {
+                                h.Username(username);
+                                h.Password(password);
+                            });
+
                             cfg.ConfigureEndpoints(context);
                         });
-
-                        //x.UsingRabbitMq((context, cfg) =>
-                        //{
-                        //    cfg.Host(host, virtualHost, h =>
-                        //    {
-                        //        h.Username(username);
-                        //        h.Password(password);
-                        //    });
-                        //});
                     });
 
                     bool.TryParse(config["UseInMemoryDatabase"], out bool useInMemoryDatabase);
                     services.AddDbContext<TicketingDbContext>(options =>
                     {
-                        string sqliteConnString = config["DB_SqliteConnectionString"];
+                        var sqliteConnString = config["DB_SqliteConnectionString"];
                         if (useInMemoryDatabase || string.IsNullOrWhiteSpace(sqliteConnString))
                         {
                             options.UseInMemoryDatabase("DB");

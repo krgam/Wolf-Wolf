@@ -33,7 +33,7 @@ namespace TicketSales.Admin
             bool.TryParse(Configuration["UseInMemoryDatabase"], out bool useInMemoryDatabase);
             services.AddDbContext<TicketingDbContext>(options =>
             {
-                string sqliteConnString = Configuration["DB_SqliteConnectionString"];
+                var sqliteConnString = Configuration["DB_SqliteConnectionString"];
                 if (useInMemoryDatabase || string.IsNullOrWhiteSpace(sqliteConnString))
                 {
                     options.UseInMemoryDatabase("DB");
@@ -53,31 +53,22 @@ namespace TicketSales.Admin
 
             services.AddMassTransit(x =>
             {
-                x.UsingInMemory((context, cfg) =>
-                {
-                    cfg.ConfigureEndpoints(context);
-                });
-
-                //x.UsingRabbitMq((context, cfg) =>
+                //x.UsingInMemory((context, cfg) =>
                 //{
-                //    cfg.Host(host, virtualHost, h =>
-                //    {
-                //        h.Username(username);
-                //        h.Password(password);
-                //    });
+                //    cfg.ConfigureEndpoints(context);
                 //});
 
-                //x.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
-                //{
-                //    cfg.Host(host, virtualHost, hostConfigurator =>
-                //    {
-                //        hostConfigurator.Username(username);
-                //        hostConfigurator.Password(password);
-                //    });
-                //}));
-
-                EndpointConvention.Map<Messages.Commands.CreateConcert>(new Uri($"rabbitmq://{host}/{virtualHost}/create-concert-command"));
+                x.UsingRabbitMq((context, cfg) =>
+                {
+                    cfg.Host(host, virtualHost, h =>
+                    {
+                        h.Username(username);
+                        h.Password(password);
+                    });
+                });
             });
+
+            EndpointConvention.Map<Messages.Commands.CreateConcert>(new Uri($"rabbitmq://{host}/{virtualHost}/create-concert-command"));
 
             services.AddMassTransitHostedService();
 

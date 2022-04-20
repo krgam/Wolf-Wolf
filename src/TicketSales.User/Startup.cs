@@ -33,7 +33,7 @@ namespace TicketSales.User
             bool.TryParse(Configuration["UseInMemoryDatabase"], out bool useInMemoryDatabase);
             services.AddDbContext<TicketingDbContext>(options =>
             {
-                string sqliteConnString = Configuration["DB_SqliteConnectionString"];
+                var sqliteConnString = Configuration["DB_SqliteConnectionString"];
                 if (useInMemoryDatabase || string.IsNullOrWhiteSpace(sqliteConnString))
                 {
                     options.UseInMemoryDatabase("DB");
@@ -53,22 +53,22 @@ namespace TicketSales.User
 
             services.AddMassTransit(x =>
             {
-                x.UsingInMemory((context, cfg) =>
-                {
-                    cfg.ConfigureEndpoints(context);
-                });
-
-                //x.UsingRabbitMq((context, cfg) =>
+                //x.UsingInMemory((context, cfg) =>
                 //{
-                //    cfg.Host(host, virtualHost, h =>
-                //    {
-                //        h.Username(username);
-                //        h.Password(password);
-                //    });
+                //    cfg.ConfigureEndpoints(context);
                 //});
 
-                EndpointConvention.Map<Messages.Commands.CreateConcert>(new Uri($"rabbitmq://{host}/{virtualHost}/buy-ticket-command"));
+                x.UsingRabbitMq((context, cfg) =>
+                {
+                    cfg.Host(host, virtualHost, h =>
+                    {
+                        h.Username(username);
+                        h.Password(password);
+                    });
+                });
             });
+
+            EndpointConvention.Map<Messages.Commands.BuyTicket>(new Uri($"rabbitmq://{host}/{virtualHost}/buy-ticket-command"));
 
             services.AddMassTransitHostedService();
 

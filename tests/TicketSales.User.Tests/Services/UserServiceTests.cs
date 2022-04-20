@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using TicketSales.User.Services;
 using TicketSales.User.Models;
 using FluentAssertions;
-using System.Threading;
 
 namespace TicketSales.User.Tests.Services
 {
@@ -31,7 +30,7 @@ namespace TicketSales.User.Tests.Services
         {
             // Arrange
             var repositoryMock = new Mock<ITicketingRepository>();
-            var publisherMock = new Mock<IPublishEndpoint>();
+            var publisherMock = new Mock<IBus>();
 
             var target = new UserService(publisherMock.Object, repositoryMock.Object);
 
@@ -49,7 +48,7 @@ namespace TicketSales.User.Tests.Services
                 NumberOfTickets = request.NumberOfTickets,
             };
 
-            publisherMock.Setup(it => it.Publish<BuyTicket>(It.IsAny<BuyTicket>(), default)).Returns(Task.CompletedTask);
+            publisherMock.Setup(it => it.Send<BuyTicket>(It.IsAny<BuyTicket>(), default)).Returns(Task.CompletedTask);
             repositoryMock.Setup(it => it.GetConcertById(request.ConcertId)).ReturnsAsync(concert);
             repositoryMock.Setup(it => it.GetUserById(request.UserId)).ReturnsAsync(user);
 
@@ -62,12 +61,12 @@ namespace TicketSales.User.Tests.Services
                 if (notEnoughTicketsForConcert)
                 {
                     actual.Should().BeEquivalentTo(new ServiceResponse(ErrorCode.NotEnoughTicketsForConcert));
-                    publisherMock.Verify(it => it.Publish(It.IsAny<BuyTicket>(), default), Times.Never);
+                    publisherMock.Verify(it => it.Send(It.IsAny<BuyTicket>(), default), Times.Never);
                 }
                 else
                 {
                     actual.Should().BeEquivalentTo(new ServiceResponse());
-                    publisherMock.Verify(it => it.Publish(It.IsAny<BuyTicket>(), default), Times.Once);
+                    publisherMock.Verify(it => it.Send(It.IsAny<BuyTicket>(), default), Times.Once);
                 }
             }
         }

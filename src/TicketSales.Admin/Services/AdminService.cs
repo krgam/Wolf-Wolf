@@ -10,10 +10,10 @@ namespace TicketSales.Admin.Services
 {
     public class AdminService : IAdminService
     {
-        private readonly IPublishEndpoint publisher;
+        private readonly IBus publisher;
         private readonly ITicketingRepository repository;
 
-        public AdminService(IPublishEndpoint publisher, ITicketingRepository repository)
+        public AdminService(IBus publisher, ITicketingRepository repository)
         {
             this.publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
             this.repository = repository ?? throw new ArgumentNullException(nameof(repository));
@@ -27,7 +27,7 @@ namespace TicketSales.Admin.Services
                 NumberOfTickets = request.NumberOfTickets,
             };
 
-            await this.publisher.Publish(command);
+            await this.publisher.Send(command);
         }
 
         public async Task<IEnumerable<Core.Domain.Concert>> RetrieveConcerts()
