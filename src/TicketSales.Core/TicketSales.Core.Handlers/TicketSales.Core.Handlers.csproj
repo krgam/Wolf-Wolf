@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MassTransit" Version="7.2.2" />
+    <PackageReference Include="MassTransit.Extensions.DependencyInjection" Version="7.2.2" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="7.2.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TicketSales.Core.DataAccess\TicketSales.Core.DataAccess.csproj" />
+    <ProjectReference Include="..\TicketSales.Core.Domain\TicketSales.Core.Domain.csproj" />
+    <ProjectReference Include="..\TicketSales.Messages\TicketSales.Messages.csproj" />
+  </ItemGroup>
+
+</Project>
