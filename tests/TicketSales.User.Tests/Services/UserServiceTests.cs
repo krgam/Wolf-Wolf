@@ -40,6 +40,7 @@ namespace TicketSales.User.Tests.Services
 
             var request = fixture.Build<BuyTicketRequest>().With(it => it.NumberOfTickets, numberOfTicketToBuy).Create();
             var concert = new Core.Domain.Concert(fixture.Create<string>(), numberOfTicket);
+            var user = fixture.Create<Core.Domain.User>();
 
             var command = new BuyTicket()
             {
@@ -50,6 +51,7 @@ namespace TicketSales.User.Tests.Services
 
             publisherMock.Setup(it => it.Publish<BuyTicket>(It.IsAny<BuyTicket>(), default)).Returns(Task.CompletedTask);
             repositoryMock.Setup(it => it.GetConcertById(request.ConcertId)).ReturnsAsync(concert);
+            repositoryMock.Setup(it => it.GetUserById(request.UserId)).ReturnsAsync(user);
 
             // Act
             var actual = await target.BuyTicket(request);
